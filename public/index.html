@@ -1,39 +1,50 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalChat</title>
+    <title>LocalChat // Secure Terminal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
-
-    <h1>💬 LocalChat</h1>
-
-<p id="users">
-    👥 Utilisateurs connectés : 0
-</p>
-
-    <input type="text" id="username" placeholder="Ton pseudo">
-
-    <div id="messages"></div>
-
-    <div class="bottom">
-        <input
-            type="text"
-            id="message"
-            placeholder="Écris un message..."
-        >
-        <button id="send">Envoyer</button>
+    <!-- 1. LE DOUBLE FOND : Fausse page d'erreur 404 qui masque le chat -->
+    <div id="fake-vault">
+        <div class="vault-content">
+            <h2>ERROR 404: RESOURCE NOT FOUND</h2>
+            <p>The requested URL was not found on this server.</p>
+            <p class="sub-text">Connection tracking active. Your IP has been logged.</p>
+        </div>
     </div>
 
-</div>
+    <!-- 2. LE CHAT CLANDESTIN (S'affiche uniquement en tapant le code 1337) -->
+    <div class="chat-container">
+        
+        <!-- En-tête avec titre et compteur de nœuds chiffrés -->
+        <div class="header">
+            <h1>💬 LocalChat</h1>
+            <p id="users">NODES: 0 // ENCRYPTED</p>
+        </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="script.js"></script>
+        <!-- Zone de configuration du pseudo -->
+        <div class="login">
+            <input type="text" id="username" placeholder="Ton pseudo...">
+        </div>
+
+        <!-- Flux de messages -->
+        <div id="messages"></div>
+
+        <!-- Zone de saisie et d'envoi de messages / commandes -->
+        <div class="input-area">
+            <input type="text" id="message" placeholder="Écris un message ou une commande /...">
+            <button id="send"></button>
+        </div>
+
+    </div>
+
+    <!-- Chargement des scripts de communication et d'interface -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>
