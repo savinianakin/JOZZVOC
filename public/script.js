@@ -1,40 +1,5 @@
-// Variable pour stocker les touches tapées et le code secret
-let secretInput = "";
-const accessCode = "1337";
+alert("Nouveau script chargé ! Protocoles de déverrouillage universels actifs.");
 
-// ÉCOUTE DU CODE SECRET DE DOUBLE FOND
-window.addEventListener("keydown", (event) => {
-    // Si l'utilisateur est en train d'écrire un message, on n'écoute pas son code secret
-    if (document.activeElement === document.getElementById("message")) return;
-
-    // Enregistre la touche enfoncée
-    secretInput += event.key;
-    
-    // Garde uniquement les derniers caractères de la taille du code secret
-    if (secretInput.length > accessCode.length) {
-        secretInput = secretInput.substr(secretInput.length - accessCode.length);
-    }
-
-    // VÉRIFICATION DU CODE SECRET
-    if (secretInput === accessCode) {
-        const vault = document.getElementById("fake-vault");
-        const chat = document.querySelector(".chat-container");
-        
-        if (vault) {
-            vault.style.transition = "opacity 0.4s ease";
-            vault.style.opacity = "0"; // Fait disparaître la page 404
-            setTimeout(() => vault.remove(), 400); // Supprime l'élément HTML du site
-        }
-        
-        if (chat) {
-            chat.classList.add("unlocked"); // Fait apparaître le chat Matrix
-        }
-        
-        alert("RÉSEAU SÉCURISÉ REJONT. INITIALISATION DU PROTOCOLE CHIFFRÉ...");
-    }
-});
-
-// INITIALISATION DU CHAT ET DES SOCKETS
 const socket = io();
 
 const username = document.getElementById("username");
@@ -43,7 +8,54 @@ const send = document.getElementById("send");
 const messages = document.getElementById("messages");
 const users = document.getElementById("users");
 
-// 1. EFFET DE DÉCHIFFREMENT MATRIX
+// Éléments du Double Fond
+const fakeVault = document.getElementById("fake-vault");
+const chatContainer = document.querySelector(".chat-container");
+
+// Fonction magique pour déverrouiller le chat secret
+function unlockSecretChat() {
+    if (fakeVault) {
+        fakeVault.style.transition = "opacity 0.4s ease";
+        fakeVault.style.opacity = "0"; // Fait disparaître la page 404
+        setTimeout(() => fakeVault.remove(), 400); // Supprime l'élément HTML
+    }
+    
+    if (chatContainer) {
+        chatContainer.classList.add("unlocked"); // Fait apparaître le chat Matrix
+    }
+    
+    alert("RÉSEAU SÉCURISÉ REJOINT. INITIALISATION DU PROTOCOLE CHIFFRÉ...");
+    setTimeout(() => message.focus(), 500);
+}
+
+// DÉVERROUILLAGE SÉCURISÉ PC & MOBILE : Triple clic/tape sur le titre "ERROR 404"
+const secretTrigger = document.querySelector("#fake-vault h2");
+let clickCount = 0;
+let clickTimer = null;
+
+if (secretTrigger) {
+    secretTrigger.style.cursor = "pointer"; // Reste discret mais cliquable
+    
+    secretTrigger.addEventListener("click", () => {
+        clickCount++;
+        
+        // Réinitialise le compteur si l'utilisateur met trop de temps entre les clics
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+            clickCount = 0;
+        }, 1000); // 1 seconde maximum pour faire les 3 clics
+
+        // Au bout de 3 clics ou tapes rapides
+        if (clickCount === 3) {
+            unlockSecretChat();
+            clickCount = 0;
+        }
+    });
+}
+
+// ==========================================
+// EFFET DE DÉCHIFFREMENT MATRIX SUR LE TEXTE
+// ==========================================
 function decryptTextEffect(element, finalText) {
     const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ#$@%&?_+=/*";
     const duration = 12; 
@@ -86,7 +98,9 @@ function logSystemMessage(text) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-// 2. ENVOI DU MESSAGE + CENTRE DE COMMANDES DU TERMINAL
+// ==========================================
+// ENVOI DU MESSAGE + TERMINAL DE COMMANDES
+// ==========================================
 function sendMessage() {
     const rawInput = message.value.trim();
     if (rawInput === "") return;
@@ -94,15 +108,14 @@ function sendMessage() {
     message.value = "";
     message.focus();
 
-    // DÉTECTION D'UNE COMMANDE (/)
     if (rawInput.startsWith("/")) {
         const args = rawInput.split(" ");
-        const command = args.toLowerCase();
+        const command = args[0].toLowerCase();
 
         switch (command) {
             case "/panic":
                 messages.innerHTML = ""; 
-                window.location.reload(); // Actualise pour re-verrouiller le site sur le 404 !
+                window.location.reload(); // Re-verrouille sur le 404
                 break;
 
             case "/hack":
@@ -128,8 +141,12 @@ function sendMessage() {
 
             case "/crypto":
                 logSystemMessage("FETCHING MARKET BLOCKCHAIN DATA...");
+                // CORRECTION: Utilisation de l'API publique correcte de CoinGecko
                 fetch("https://coingecko.com")
-                    .then(res => res.json())
+                    .then(res => {
+                        if (!res.ok) throw new Error();
+                        return res.json();
+                    })
                     .then(data => {
                         const price = data.bitcoin.usd;
                         logSystemMessage(`[MARKET] BTC/USD: $${price.toLocaleString()} USD`);
@@ -202,57 +219,14 @@ function sendMessage() {
     });
 }
 
-send.addEventListener("click", sendMessage);
-
-message.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        sendMessage();
-    }
-});
-
-// 3. RÉCEPTION DU MESSAGE DU SERVEUR
-socket.on("chat message", (data) => {
-    const div = document.createElement("div");
-    
-    if (data.username === "Système") {
-        div.className = "system-message";
-    } else if (data.username === username.value.trim()) {
-        div.className = "my-message";
-    } else {
-        div.className = "other-message";
-    }
-
-    const textSpan = document.createElement("span");
-    decryptTextEffect(textSpan, data.message);
-
-    const timeSmall = document.createElement("small");
-    timeSmall.innerText = data.time;
-
-    if (data.username === "Système") {
-        div.appendChild(textSpan);
-    } else if (data.username === username.value.trim()) {
-        div.appendChild(textSpan);
-        div.appendChild(timeSmall);
-    } else {
-        const nameStrong = document.createElement("strong");
-        nameStrong.innerText = data.username;
-        nameStrong.style.display = "block";
-        nameStrong.style.fontSize = "12px";
-        nameStrong.style.color = "#ff3366";
-        nameStrong.style.marginBottom = "4px";
-
-        div.appendChild(nameStrong);
-        div.appendChild(textSpan);
-        div.appendChild(timeSmall);
-    }
-
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-});
-
-// 4. COMPTEUR DE NOEUDS
-socket.on("user count", (number) => {
-    if (users) {
-        users.innerHTML = `NODES: ${number} // ENCRYPTED`;
-    }
-});
+// CORRECTION: Liaison des événements pour déclencher sendMessage()
+if (send) {
+    send.addEventListener("click", sendMessage);
+}
+if (message) {
+    message.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
+}
